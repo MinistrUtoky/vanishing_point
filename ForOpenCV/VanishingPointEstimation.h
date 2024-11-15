@@ -46,4 +46,7 @@ public:
 										float sigmaThreshold);
 	static cv::Point2d reestimateVanishingPoint(std::vector<cv::Vec4i> segments);
 	static cv::Mat visualizeResults(std::vector<cv::Vec4i> segments, std::vector<cv::Point2d> vanishingPoints);
+	static cv::Point2d reestimateVanishingPointErrorBased(std::vector<cv::Vec4i> segments);
+	static cv::Point2d reestimateVanishingPointErrorBasedFast(std::vector<cv::Vec4i> segments) {
+	};
 };

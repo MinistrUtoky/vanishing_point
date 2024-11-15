@@ -15,7 +15,7 @@ int main() {
 
 		std::vector<cv::Vec4i> bestModelSegments = VanishingPointEstimation::chooseBestModel(candidatePoints, lineSegments, 300);
 
-		cv::Point2d bestModelAverageVanishingPoint = VanishingPointEstimation::reestimateVanishingPoint(bestModelSegments);
+		cv::Point2d bestModelAverageVanishingPoint = VanishingPointEstimation::reestimateVanishingPointErrorBased(bestModelSegments);
 
 		cv::Mat finalResult = VanishingPointEstimation::visualizeResults(bestModelSegments, std::vector<cv::Point2d> {bestModelAverageVanishingPoint});
 

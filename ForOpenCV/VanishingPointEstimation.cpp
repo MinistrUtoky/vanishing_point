@@ -130,7 +130,7 @@ cv::Point2d VanishingPointEstimation::reestimateVanishingPoint(std::vector<cv::V
 			if (i != j) {
 				a1 = segments.at(i)[1] - segments.at(i)[3]; b1 = segments.at(i)[2] - segments.at(i)[0];
 				a2 = segments.at(j)[1] - segments.at(j)[3]; b2 = segments.at(j)[2] - segments.at(j)[0];
-				if (abs(a1 * b2 - b1 * a2) > 1) {
+				if (abs(a1 * b2 - b1 * a2) > 0) {
 					cv::Point2d p = intersection(segments.at(i), segments.at(j));
 					allVanishingPoints.push_back(p);
 				}
@@ -143,6 +143,54 @@ cv::Point2d VanishingPointEstimation::reestimateVanishingPoint(std::vector<cv::V
 		averageVanishingPoint += allVanishingPoints.at(i) / (int)allVanishingPoints.size();
 	}
 	//visualizeResults(std::vector<cv::Vec4i>{}, allVanishingPoints);
+	return averageVanishingPoint;
+}
+
+cv::Point2d VanishingPointEstimation::reestimateVanishingPointErrorBased(std::vector<cv::Vec4i> segments) {
+	//Finally, re-estimate the vanishing point based on all the inlier line segments. (8 points) 
+	cv::Point2d averageVanishingPoint(0, 0);
+	std::vector<cv::Point2d> allVanishingPoints;
+	float min_error = 1e37;
+	float err_now;
+	float a1, b1, c1;
+	float a2, b2, c2;
+	for (int i = 0; i < segments.size(); i++) {
+		for (int j = 0; j < segments.size(); j++) {
+			if (i != j) {
+				a1 = segments.at(i)[1] - segments.at(i)[3]; b1 = segments.at(i)[2] - segments.at(i)[0];
+				a2 = segments.at(j)[1] - segments.at(j)[3]; b2 = segments.at(j)[2] - segments.at(j)[0];
+				if (abs(a1 * b2 - b1 * a2) > 0) {
+					cv::Point2d p = intersection(segments.at(i), segments.at(j));
+					allVanishingPoints.push_back(p);
+				}
+			}
+		}
+	}
+
+	for (cv::Point2d candidatePoint : allVanishingPoints)
+	{
+		err_now = 0;
+		for (int i = 0; i < segments.size(); i++) {
+			for (int j = 0; j < segments.size(); j++) {
+				if (i != j) {
+					a1 = segments.at(i)[1] - segments.at(i)[3],
+						b1 = segments.at(i)[2] - segments.at(i)[0],
+						c1 = segments.at(i)[0] * segments.at(i)[3] - segments.at(i)[2] * segments.at(i)[1];
+					a2 = segments.at(j)[1] - segments.at(j)[3],
+						b2 = segments.at(j)[2] - segments.at(j)[0],
+						c2 = segments.at(j)[0] * segments.at(j)[3] - segments.at(j)[2] * segments.at(j)[1];
+
+					if (abs(a1 * b2 - b1 * a2) > 0) {
+						err_now = err_now + abs(a1 * candidatePoint.x + b1 * candidatePoint.y + c1) + abs(a2 * candidatePoint.x + b2 * candidatePoint.y + c2);
+					}
+				}
+			}
+		}
+		if (err_now < min_error) {
+			averageVanishingPoint = candidatePoint;
+			min_error = err_now;
+		}
+	}
 	return averageVanishingPoint;
 }
 
